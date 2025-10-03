@@ -10,8 +10,8 @@ import {
   resetPassword,
   resendVerificationEmail,
 } from "../controllers/auth.controller";
-import { authenticateToken } from "../middleware/auth.middleware";
-import { validateRequest } from "../middleware/validation.middleware";
+
+import { validateRequest, authenticateToken } from "shared";
 import {
   registerSchema,
   loginSchema,

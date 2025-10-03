@@ -16,7 +16,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
   verifyRefreshToken,
-} from "../utils/jwt";
+} from "shared";
 import { generateUsername, generateUsernameFromEmail } from "../utils/username";
 import {
   generateVerificationToken,

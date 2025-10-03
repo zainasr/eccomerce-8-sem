@@ -2,11 +2,9 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
-import path from "path";
 import authRoutes from "./routes/auth.routes";
+import { Pool } from "pg";
 
-// Load environment variables from the correct path
-// dotenv.config({ path: path.join(__dirname, "../../.env") });
 dotenv.config();
 
 const app = express();

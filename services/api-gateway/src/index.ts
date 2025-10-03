@@ -8,7 +8,7 @@ dotenv.config();
 
 const app = express();
 
-const PORT = process.env.PORT || process.env.API_GATEWAY_PORT || 3000;
+const PORT = process.env.PORT;
 
 app.use(helmet());
 app.use(
@@ -22,8 +22,11 @@ app.use(
 );
 
 const AUTH_SERVICE_URL =
-  process.env.AUTH_SERVICE_URL || "http://localhost:3001";
+  process.env.AUTH_SERVICE_URL;
+const PRODUCT_SERVICE_URL =
+  process.env.PRODUCT_SERVICE_URL;
 
+// Auth service proxy
 app.use(
   "/api/auth",
   createProxyMiddleware({
@@ -31,6 +34,30 @@ app.use(
     changeOrigin: true,
     pathRewrite: {
       "^/api/auth": "/auth",
+    },
+  })
+);
+
+// Product service proxy
+app.use(
+  "/api/products",
+  createProxyMiddleware({
+    target: PRODUCT_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      "^/api/products": "/products",
+    },
+  })
+);
+
+// Category service proxy
+app.use(
+  "/api/categories",
+  createProxyMiddleware({
+    target: PRODUCT_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      "^/api/categories": "/categories",
     },
   })
 );
@@ -47,6 +74,8 @@ app.get("/", (req, res) => {
     version: "1.0.0",
     endpoints: {
       auth: "/api/auth/*",
+      products: "/api/products/*",
+      categories: "/api/categories/*",
       health: "/health",
     },
   });

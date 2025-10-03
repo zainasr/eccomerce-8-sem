@@ -5,8 +5,6 @@ class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor() {
-    
-
     // Hardcoded SMTP configuration for now
     const smtpConfig = {
       host: "smtp.gmail.com",
@@ -21,10 +19,7 @@ class EmailService {
       },
     };
 
-    console.log("🔧 Configuring SMTP: smtp.gmail.com:587");
-
     this.transporter = nodemailer.createTransport(smtpConfig);
-    console.log("✅ Real SMTP transporter created");
   }
 
   private getEmailVerificationTemplate(
@@ -73,17 +68,13 @@ class EmailService {
     token: string,
     firstName?: string
   ): Promise<void> {
-    console.log("📧 sendVerificationEmail called for:", email);
     try {
-      const info = await this.transporter.sendMail({
+      await this.transporter.sendMail({
         from: '"ECCOMERCE" <mynameiszainmalik@gmail.com>',
         to: email,
         subject: "Verify Your Email Address",
         html: this.getEmailVerificationTemplate(token, firstName),
       });
-
-      console.log("✅ Verification email sent successfully to:", email);
-      console.log("Message ID:", info.messageId);
     } catch (error) {
       console.error("❌ Failed to send verification email:", error);
       throw new Error("Failed to send verification email");
@@ -105,7 +96,6 @@ class EmailService {
       });
 
       console.log("✅ Password reset email sent successfully to:", email);
-      console.log("Message ID:", info.messageId);
     } catch (error) {
       console.error("❌ Failed to send password reset email:", error);
       throw new Error("Failed to send password reset email");
