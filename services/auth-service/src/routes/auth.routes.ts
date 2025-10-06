@@ -25,7 +25,7 @@ const router = Router();
 router.post("/register", validateRequest(registerSchema), register);
 router.post("/login", validateRequest(loginSchema), login);
 router.post("/refresh", refreshToken);
-router.get("/verify/:token", verifyEmail);
+router.get("/verify-email/:token", verifyEmail);
 router.post(
   "/forgot-password",
   validateRequest(forgotPasswordSchema),

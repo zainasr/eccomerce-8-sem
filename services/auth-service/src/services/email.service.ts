@@ -7,12 +7,12 @@ class EmailService {
   constructor() {
     // Hardcoded SMTP configuration for now
     const smtpConfig = {
-      host: "smtp.gmail.com",
-      port: 587,
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: Number(process.env.SMTP_PORT) || 587,
       secure: false,
       auth: {
-        user: "mynameiszainmalik@gmail.com",
-        pass: "ctdt qgwx ftzb aouy",
+        user: process.env.SMTP_USER || "mynameiszainmalik@gmail.com",
+        pass: process.env.SMTP_PASSWORD || "ctdt qgwx ftzb aouy",
       },
       tls: {
         rejectUnauthorized: false,
@@ -26,7 +26,7 @@ class EmailService {
     token: string,
     firstName?: string
   ): string {
-    const verifyUrl = `http://localhost:3000/api/auth/verify/${token}`;
+    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
 
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -45,7 +45,7 @@ class EmailService {
   }
 
   private getPasswordResetTemplate(token: string, firstName?: string): string {
-    const resetUrl = `http://localhost:3000/api/auth/reset-password?token=${token}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -70,7 +70,9 @@ class EmailService {
   ): Promise<void> {
     try {
       await this.transporter.sendMail({
-        from: '"ECCOMERCE" <mynameiszainmalik@gmail.com>',
+        from:
+          `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>` ||
+          '"ECCOMERCE" <mynameiszainmalik@gmail.com>',
         to: email,
         subject: "Verify Your Email Address",
         html: this.getEmailVerificationTemplate(token, firstName),
@@ -89,7 +91,9 @@ class EmailService {
     console.log("📧 sendPasswordResetEmail called for:", email);
     try {
       const info = await this.transporter.sendMail({
-        from: '"ECCOMERCE" <mynameiszainmalik@gmail.com>',
+        from:
+          `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>` ||
+          '"ECCOMERCE" <mynameiszainmalik@gmail.com>',
         to: email,
         subject: "Reset Your Password",
         html: this.getPasswordResetTemplate(token, firstName),
