@@ -6,6 +6,8 @@ import authRoutes from "./routes/auth.routes";
 import categoryRoutes from "./routes/category.routes";
 import productRoutes from "./routes/product.routes";
 import cookieParser from "cookie-parser";
+import orderRoutes from "./routes/order.route";
+import cartRoutes from "./routes/cart.routes";
 dotenv.config();
 const app = express();
 
@@ -35,6 +37,8 @@ const PORT = process.env.PORT || 5000;
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/cart", cartRoutes);
 app.get("/health", (req, res) => {
     res.json({ status: "OK", service: "eccomerce app" });
 });

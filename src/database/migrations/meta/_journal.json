@@ -22,6 +22,20 @@
       "when": 1760736930814,
       "tag": "0002_daffy_leo",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1760797909835,
+      "tag": "0003_silent_silver_centurion",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1760799147919,
+      "tag": "0004_typical_spiral",
+      "breakpoints": true
     }
   ]
 }

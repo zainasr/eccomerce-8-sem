@@ -29,7 +29,7 @@ export const products = pgTable("products", {
   name: varchar("name", { length: 200 }).notNull(),
   description: text("description").notNull(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  sku: varchar("sku", { length: 100 }).unique(),
+  sku: varchar("sku", { length: 100 }),
   status: varchar("status", { length: 20 }).default("draft").notNull(),
   stockQuantity: integer("stock_quantity").default(0).notNull(),
   lowStockThreshold: integer("low_stock_threshold").default(5).notNull(),

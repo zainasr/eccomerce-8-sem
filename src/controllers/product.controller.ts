@@ -6,6 +6,7 @@ const productService = new ProductService();
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
+    console.log("req.body : ", req.body);
     const sellerId = (req as any).user?.userId as string;
     if (!sellerId) {
       return res.status(401).json({

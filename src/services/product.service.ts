@@ -74,6 +74,15 @@ export class ProductService {
     data: CreateProductRequest,
     sellerId: string
   ): Promise<Product> {
+    const length = data.categoryIds?.length;
+    for (let i = 0; i < length; i++) {
+      const categoryId = data.categoryIds[i];
+      const category = await db.select().from(categories).where(eq(categories.id, categoryId));
+      if (!category) {
+        throw new Error(`Category ${categoryId} not found`);
+      }
+    }
+  
     const [newProduct] = await db
       .insert(products)
       .values({
@@ -82,8 +91,8 @@ export class ProductService {
         price: data.price.toString(),
       })
       .returning();
-
-    if (data.categoryIds.length > 0) {
+  
+    if (data.categoryIds && data.categoryIds.length > 0) {
       await db.insert(productCategories).values(
         data.categoryIds.map((categoryId) => ({
           productId: newProduct.id,
@@ -91,16 +100,16 @@ export class ProductService {
         }))
       );
     }
-
+  
     // Ensure at least one image exists for the product
     const defaultImages = [
       "https://images.unsplash.com/photo-1512446816042-444d6412674f",
       "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
       "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
     ];
-
+  
     const imagesToInsert = (data as any).images as string[] | undefined;
-
+  
     if (imagesToInsert && imagesToInsert.length > 0) {
       // Insert provided images, mark the first as primary
       await db.insert(productImages).values(
@@ -120,7 +129,7 @@ export class ProductService {
         isPrimary: true,
       });
     }
-
+  
     return mapDbProductToProduct(newProduct);
   }
 
