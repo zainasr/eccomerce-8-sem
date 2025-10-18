@@ -2,23 +2,40 @@
   "name": "ecommerce-microservices",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "services/*",
-    "packages/*"
-  ],
   "scripts": {
-    "dev": "npm run db:up && npm run dev:services",
-    "dev:services": "concurrently \"npm run dev -w api-gateway\" \"npm run dev -w auth-service\" \"npm run dev -w product-service\"",
-    "build": "npm run build --workspaces",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "drizzle-orm": "^0.29.1",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^7.0.6",
+    "postgres": "^3.4.3",
+    "zod": "^3.25.76"
+  },
   "devDependencies": {
-    "concurrently": "^8.2.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.6",
+    "@types/nodemailer": "^7.0.1",
+    "@types/pg": "^8.10.9",
     "drizzle-kit": "^0.31.5",
-    "drizzle-orm": "^0.44.6"
+    "drizzle-orm": "^0.44.6",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3"
   }
 }

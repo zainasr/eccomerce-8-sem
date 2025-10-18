@@ -1,0 +1,27 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1758805979968,
+      "tag": "0000_goofy_sharon_ventura",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1759774476986,
+      "tag": "0001_clever_warbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1760736930814,
+      "tag": "0002_daffy_leo",
+      "breakpoints": true
+    }
+  ]
+}
