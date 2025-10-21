@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Stripe PaymentElement Test</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 420px;
+        margin: 3rem auto;
+        padding: 1rem;
+      }
+      #payment-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      button {
+        background: #635bff;
+        color: white;
+        border: 0;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      button:hover {
+        background: #5046e5;
+      }
+      #message {
+        font-size: 0.9rem;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Test Stripe Payment Element</h2>
+    <form id="payment-form">
+      <div id="payment-element"><!-- Stripe mounts here --></div>
+      <button id="submit">Pay Now</button>
+      <div id="message"></div>
+    </form>
+
+    <script>
+      // Replace these values 👇
+      const STRIPE_PUBLISHABLE_KEY = "pk_test_51PdGNQF8WJmKMjNC16RWyTKO1lHhjcAEj63k6UA2dQ5P9aCJA6qr6mj4qeIItmUei1fTPfrpxqVRRbcxyyVylHzp00GBH7eDs5";
+      const CLIENT_SECRET = "pi_3SK69DF8WJmKMjNC2EWXE0nS_secret_DOJcURbwIamS6YucUb2oIY9VF";
+
+      const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+      const elements = stripe.elements({ clientSecret: CLIENT_SECRET });
+
+      const paymentElement = elements.create("payment");
+      paymentElement.mount("#payment-element");
+
+      const form = document.getElementById("payment-form");
+      const messageDiv = document.getElementById("message");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        messageDiv.textContent = "Processing payment...";
+
+        const { error } = await stripe.confirmPayment({
+          elements,
+          confirmParams: {
+            // redirect not required for test; just reloads same page
+            return_url: window.location.href,
+          },
+        });
+
+        if (error) {
+          messageDiv.textContent = error.message;
+        } else {
+          messageDiv.textContent = "Payment submitted. Waiting for confirmation...";
+        }
+      });
+    </script>
+  </body>
+</html>

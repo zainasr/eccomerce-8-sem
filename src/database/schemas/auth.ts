@@ -29,6 +29,8 @@ export const users = pgTable("users", {
   passwordResetExpiresAt: timestamp("password_reset_expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
+
 });
 
 export const userProfiles = pgTable("user_profiles", {

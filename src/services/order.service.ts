@@ -17,8 +17,11 @@ import {
   OrderStatus,
 } from "../types/order";
 import { CartService } from "./cart.service";
+import { payments } from "../database/schemas/payment";
+import { PaymentService } from "./payment.service";
 
 const cartService = new CartService();
+const paymentService = new PaymentService();
 
 export class OrderService {
   async createOrders(
@@ -359,6 +362,23 @@ export class OrderService {
         })
         .where(eq(products.id, item.productId));
     }
+
+    const [payment] = await db
+  .select()
+  .from(payments)
+  .where(
+    and(
+      eq(payments.userId, order.buyerId),
+      eq(payments.status, "succeeded")
+    )
+  )
+  .orderBy(desc(payments.createdAt))
+  .limit(1);
+
+if (payment) {
+  await paymentService.refundPayment(payment.stripePaymentIntentId, "Order cancelled by buyer");
+}
+
 
     await db
       .update(orders)

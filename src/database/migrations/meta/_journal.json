@@ -36,6 +36,20 @@
       "when": 1760799147919,
       "tag": "0004_typical_spiral",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1760803391307,
+      "tag": "0005_yummy_maginty",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1760803743288,
+      "tag": "0006_naive_dreaming_celestial",
+      "breakpoints": true
     }
   ]
 }
