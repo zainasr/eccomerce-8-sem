@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { API_URL } from '@/lib/constants';
+import { Product } from '@/types';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
@@ -11,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     // Categories
-    const catRes = await fetch(`${API_URL}/categories/get-all-categories?limit=1000`, { cache: 'no-store' });
+    const catRes = await fetch(`${API_URL}/categories/get-all-categories?limit=100`, { cache: 'no-store' });
     if (catRes.ok) {
       const catData = await catRes.json();
       const categories: { slug: string; updatedAt?: string }[] = catData.data?.categories || [];
@@ -28,14 +29,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     // Products (paginate to be safe)
-    let page = 1;
+    const page = 1;
     const limit = 100;
     // Try first page to determine total
     const firstRes = await fetch(`${API_URL}/products/get-all-products?page=${page}&limit=${limit}&status=active`, { cache: 'no-store' });
     if (firstRes.ok) {
       const first = await firstRes.json();
       const totalPages = first.data?.pagination?.totalPages || 1;
-      const addProducts = (items: any[]) => {
+      const addProducts = (items: Product[]) => {
         for (const p of items || []) {
           urls.push({
             url: `${SITE_URL}/products/${p.slug}`,

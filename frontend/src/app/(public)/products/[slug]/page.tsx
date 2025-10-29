@@ -8,6 +8,8 @@ import { formatPrice, formatDate } from '@/lib/utils';
 import { AddToCartButton } from '@/components/products/AddToCartButton';
 import type { Metadata } from 'next';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 async function getProduct(slug: string): Promise<Product | null> {
   try {
     const response = await fetch(`${API_URL}/products/get-product-by-slug/${slug}`, {
@@ -36,6 +38,8 @@ export async function generateMetadata({
     };
   }
 
+  const canonical = `${SITE_URL}/products/${product.slug}`;
+
   return {
     title: product.seoTitle || `${product.name} | ShopHub`,
     description: product.seoDescription || product.description || `Buy ${product.name} at great prices`,
@@ -44,8 +48,10 @@ export async function generateMetadata({
       title: product.name,
       description: product.description || '',
       images: product.images?.length ? [product.images[0].imageUrl] : [],
-      url: `${API_URL}/products/${product.slug}`,
+      url: canonical,
+      type: 'website',
     },
+    alternates: { canonical },
   };
 }
 
@@ -64,9 +70,40 @@ export default async function ProductDetailPage({
   const primaryImage = product.images?.find((img) => img.isPrimary) || product.images?.[0];
   const inStock = product.stockQuantity > 0;
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    image: product.images?.map((i) => i.imageUrl) || [],
+    description: product.description || undefined,
+    sku: product.sku || undefined,
+    brand: { '@type': 'Brand', name: 'ShopHub' },
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'USD',
+      price: String(product.price),
+      availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      url: `${SITE_URL}/products/${product.slug}`,
+    },
+  };
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      ...(product.categories && product.categories[0]
+        ? [{ '@type': 'ListItem', position: 2, name: product.categories[0].name, item: `${SITE_URL}/category/${product.categories[0].slug}` }]
+        : []),
+      { '@type': 'ListItem', position: 3, name: product.name, item: `${SITE_URL}/products/${product.slug}` },
+    ],
+  };
+
   return (
     <main className="min-h-screen bg-white">
       <div className="container py-8 md:py-12">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
         {/* Breadcrumb */}
         <nav className="mb-6 text-sm text-text-secondary" aria-label="Breadcrumb">
           <ol className="flex items-center gap-2">
@@ -155,7 +192,7 @@ export default async function ProductDetailPage({
               <p className="text-sm text-text-secondary mt-2">
                 {inStock
                   ? product.stockQuantity < 10
-                    ? `Only ${product.stockQuantity} left in stock - order soon!`
+                    ? `Only {product.stockQuantity} left in stock - order soon!`
                     : 'In Stock'
                   : 'Currently unavailable'}
               </p>

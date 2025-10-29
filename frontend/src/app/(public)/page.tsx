@@ -9,6 +9,8 @@ import { formatPrice } from '@/lib/utils';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
   title: 'ShopHub - Your Modern Online Store | Quality Products at Great Prices',
   description: 'Discover a wide range of quality products at ShopHub. Fast shipping, secure checkout, and excellent customer service. Shop now!',
@@ -17,7 +19,9 @@ export const metadata: Metadata = {
     title: 'ShopHub - Your Modern Online Store',
     description: 'Discover quality products at great prices',
     type: 'website',
+    url: SITE_URL,
   },
+  alternates: { canonical: SITE_URL },
 };
 
 async function getFeaturedProducts(): Promise<Product[]> {
