@@ -1,20 +1,38 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
-import { UploadThingError } from "uploadthing/server";
 
 const f = createUploadthing();
-const auth = async (req: Request) => ({ id: "anon" });
 
+
+// FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
+  // Define as many FileRoutes as you like, each with a unique routeSlug
   imageUploader: f({
-    image: { maxFileSize: "4MB", maxFileCount: 1 },
+    image: {
+      /**
+       * For full list of options and defaults, see the File Route API reference
+       * @see https://docs.uploadthing.com/file-routes#route-config
+       */
+      maxFileSize: "4MB",
+      maxFileCount: 1,
+    },
   })
-    .middleware(async ({ req }) => {
-      const user = await auth(req);
-      if (!user) throw new UploadThingError("Unauthorized");
-      return { userId: user.id };
-    })
     .onUploadComplete(async ({ metadata, file }) => {
-      return { uploadedBy: metadata.userId, url: file.ufsUrl };
+      console.log("Upload complete");
+      console.log("file url", file.ufsUrl);
+      return { fileUrl: file.ufsUrl };
+    }),
+  
+  // Multiple images uploader for products
+  productImageUploader: f({
+    image: {
+      maxFileSize: "4MB",
+      maxFileCount: 10, // Allow up to 10 images per product
+    },
+  })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Product image upload complete");
+      console.log("file url", file.ufsUrl);
+      return { fileUrl: file.ufsUrl };
     }),
 } satisfies FileRouter;
 

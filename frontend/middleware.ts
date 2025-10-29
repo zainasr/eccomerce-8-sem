@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // Simple auth guard using a lightweight cookie set on login
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const isAuth = Boolean(req.cookies.get("auth")?.value);
+  const isAuth = Boolean(req.cookies.get("access_token")?.value);
 
   const isAuthPage =
     pathname.startsWith("/login") || pathname.startsWith("/register");
@@ -29,5 +29,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/register", "/dashboard/:path*", "/cart"],
+  matcher: ["/login", "/register", "/dashboard/:path*"],
 };
