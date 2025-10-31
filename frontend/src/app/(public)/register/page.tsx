@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 
 import { API_URL, ROUTES } from "@/lib/constants";
+import { Eye, EyeOff } from 'lucide-react';
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -34,6 +35,7 @@ export default function RegisterPage() {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -128,18 +130,27 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   {...register("password")}
+                  autoComplete="new-password"
+                  className="pr-12"
                 />
+                <button
+                  type="button"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-2 top-9 p-1 text-slate-500 hover:text-primary focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
                 {errors.password && (
-                  <p className="text-sm text-red-600">
-                    {errors.password.message}
-                  </p>
+                  <p className="text-sm text-red-600">{errors.password.message}</p>
                 )}
               </div>
 

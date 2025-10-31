@@ -6,6 +6,8 @@ import type { Product, Category } from '@/types';
 export const metadata: Metadata = {
   title: 'All Products | ShopHub',
   description: 'Browse all products available at ShopHub. Find great deals and new arrivals.',
+  alternates: { canonical: '/products' },
+  openGraph: { images: ['/apple-touch-icon.png'] },
 };
 
 async function getCategories(): Promise<Category[]> {
@@ -47,12 +49,16 @@ async function getProducts(searchParams: { [key: string]: string | undefined }):
   }
 }
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
   const sp = await searchParams;
   const [categories, productsRes] = await Promise.all([
     getCategories(),
     getProducts(sp || {}),
   ]);
+  console.log("productsRes",productsRes)  
+  console.log("categories",categories)
 
   const initialFilters = {
     search: sp?.search || '',
@@ -65,12 +71,24 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     sortOrder: sp?.sortOrder || 'desc',
   };
 
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: productsRes.products.map((p, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: `${SITE_URL}/products/${p.slug}`,
+      name: p.name,
+    })),
+  };
+
   return (
     <div className="container">
       <header className="py-6 md:py-8">
         <h1 className="text-3xl md:text-4xl font-bold">All Products</h1>
         <p className="text-text-secondary mt-2">Explore our full catalog of items</p>
       </header>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
       <ProductsClient
         categories={categories}
         initialProducts={productsRes.products}

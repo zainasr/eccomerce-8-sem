@@ -279,12 +279,40 @@ export class ProductService {
       const product = mapDbProductToProduct(row.products ?? row);
       if (!uniqueById.has(product.id)) uniqueById.set(product.id, product);
     }
-    // console.log("productsResult", productsResult);
-    // console.log("totalCount", totalCount);
-    // console.log("uniqueById", uniqueById);
+    
+
+    // Attach images array for each product (batch-fetch)
+    const productList = Array.from(uniqueById.values());
+    if (productList.length > 0) {
+      const productIds = productList.map((p) => p.id);
+      const imageRows = await db
+        .select()
+        .from(productImages)
+        .where(inArray(productImages.productId, productIds));
+
+      const imagesByProduct = new Map<string, ProductImage[]>();
+      for (const row of imageRows) {
+        const img = mapDbImageToImage(row);
+        const arr = imagesByProduct.get(img.productId) ?? [];
+        arr.push(img);
+        imagesByProduct.set(img.productId, arr);
+      }
+
+      // Ensure primary images come first
+      for (const [key, arr] of imagesByProduct) {
+        imagesByProduct.set(
+          key,
+          arr.sort((a, b) => (a.isPrimary === b.isPrimary ? 0 : a.isPrimary ? -1 : 1))
+        );
+      }
+
+      for (const p of productList) {
+        (p as any).images = imagesByProduct.get(p.id) ?? [];
+      }
+    }
 
     return {
-      products: Array.from(uniqueById.values()),
+      products: productList,
       pagination: {
         page,
         limit,

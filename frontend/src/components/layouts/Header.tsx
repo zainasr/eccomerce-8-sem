@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, User, LogOut, Package, Store } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Package, Store, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -23,15 +23,18 @@ export function Header() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
       logout();
       router.push(ROUTES.HOME);
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  };
+
+  const goToDashboard = () => {
+    if (!user) return;
+    if (user.role === 'admin') router.push(ROUTES.ADMIN_DASHBOARD);
+    else router.push(ROUTES.DASHBOARD);
   };
 
   return (
@@ -41,44 +44,31 @@ export function Header() {
           {/* Logo */}
           <Link href={ROUTES.HOME} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Store className="h-7 w-7 text-primary" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              ShopHub
-            </span>
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">ShopHub</span>
           </Link>
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link 
-              href={ROUTES.HOME} 
-              className="text-sm font-medium text-text-secondary hover:text-primary transition-colors"
-            >
-              Home
-            </Link>
-            <Link 
-              href={ROUTES.PRODUCTS} 
-              className="text-sm font-medium text-text-secondary hover:text-primary transition-colors"
-            >
-              Products
-            </Link>
+            <Link href={ROUTES.HOME} className="text-sm font-medium text-text-secondary hover:text-primary transition-colors">Home</Link>
+            <Link href={ROUTES.PRODUCTS} className="text-sm font-medium text-text-secondary hover:text-primary transition-colors">Products</Link>
+            {user?.role === 'admin' && (
+              <Link href={ROUTES.ADMIN_DASHBOARD} className="text-sm font-medium text-text-secondary hover:text-primary transition-colors">Admin</Link>
+            )}
           </nav>
 
           {/* Actions */}
           <div className="flex items-center gap-4">
-            {/* Cart - Show for all users */}
             {user && (
               <Link href={ROUTES.CART}>
                 <Button variant="ghost" size="icon" className="relative">
                   <ShoppingCart className="h-5 w-5" />
                   {itemCount > 0 && (
-                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary">
-                      {itemCount}
-                    </Badge>
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary">{itemCount}</Badge>
                   )}
                 </Button>
               </Link>
             )}
 
-            {/* User Menu */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -86,20 +76,17 @@ export function Header() {
                     <User className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 z-[1000]">
                   <div className="flex flex-col gap-1 p-3">
                     <p className="text-sm font-medium text-text">{user.username}</p>
                     <p className="text-xs text-text-muted">{user.email}</p>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push(ROUTES.DASHBOARD)}>
-                    <User className="mr-2 h-4 w-4" />
-                    My Account
+                  <DropdownMenuItem onClick={goToDashboard} className="hover:text-white">
+                    <LayoutDashboard className="mr-2 h-4 w-4 rounded-md" />
+                      {user.role === 'admin' ? 'Admin Dashboard' : 'My Dashboard'}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push(ROUTES.ORDERS)}>
-                    <Package className="mr-2 h-4 w-4" />
-                    My Orders
-                  </DropdownMenuItem>
+
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-error">
                     <LogOut className="mr-2 h-4 w-4" />
@@ -109,19 +96,9 @@ export function Header() {
               </DropdownMenu>
             ) : (
               <div className="flex items-center gap-3">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => router.push(ROUTES.LOGIN)}
-                  className="text-text-secondary"
-                >
-                  Login
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={() => router.push(ROUTES.REGISTER)}
-                  className="bg-primary hover:bg-primary-hover"
-                >
+                <Button variant="ghost" size="sm" onClick={() => router.push(ROUTES.LOGIN)} className="text-text-secondary">Login</Button>
+                <Button size="sm" onClick={() => router.push(ROUTES.REGISTER)}>
+                  {/* default variant ensures white text and black hover */}
                   Sign Up
                 </Button>
               </div>

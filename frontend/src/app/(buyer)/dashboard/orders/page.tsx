@@ -6,6 +6,8 @@ import { formatPrice, formatDate } from '@/lib/utils';
 import { Package } from 'lucide-react';
 import { cookies } from 'next/headers';
 
+export const dynamic = 'force-dynamic';
+
 async function getOrders(): Promise<Order[]> {
   try {
     const cookieStore = await cookies();

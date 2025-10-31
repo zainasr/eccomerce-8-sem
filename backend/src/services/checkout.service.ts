@@ -6,6 +6,7 @@ import { CartService } from "./cart.service";
 import { PaymentService } from "./payment.service";
 import { Order } from "../types/order";
 import { stripe } from "../config/stripe";
+import { users } from "../database/schemas/auth";
 
 const cartService = new CartService();
 const paymentService = new PaymentService();
@@ -16,6 +17,33 @@ export class CheckoutService {
 
     if (cartItemsList.length === 0) {
       throw new Error("Cart is empty");
+    }
+
+    // Ensure Stripe customer exists for this user
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    let customerId = user.stripeCustomerId as string | null;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          userId: user.id,
+          username: user.username,
+        },
+      });
+      customerId = customer.id;
+      await db
+        .update(users)
+        .set({ stripeCustomerId: customerId })
+        .where(eq(users.id, userId));
     }
 
     // Validate products and create line items
@@ -55,14 +83,21 @@ export class CheckoutService {
       })
     );
 
-    // Create Stripe Checkout Session
+    // Create Stripe Checkout Session with customer + payment_intent_data.metadata
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
       success_url: `${process.env.FRONTEND_URL}/dashboard/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/dashboard/cart`,
+      cancel_url: `${process.env.FRONTEND_URL}/dashboard/payment-failed`,
+      customer: customerId || undefined,
+      payment_intent_data: {
+        metadata: {
+          userId,
+        },
+      },
       metadata: {
+        // Optional: keep at session-level too
         userId,
       },
     });
@@ -76,7 +111,12 @@ export class CheckoutService {
     paymentIntentId: string,
     shippingAddress: string
   ): Promise<Order[]> {
-    const payment = await paymentService.getPaymentByIntentId(paymentIntentId);
+    console.log("pid",paymentIntentId)
+    let payment = await paymentService.getPaymentByIntentId(paymentIntentId);
+    if (!payment) {
+      // Try to sync from Stripe and re-fetch
+      payment = await paymentService.ensureSyncedFromStripe(paymentIntentId);
+    }
 
     if (!payment) {
       throw new Error("Payment not found");
@@ -89,6 +129,7 @@ export class CheckoutService {
     const userId = payment.userId;
     
     const cartItemsList = await cartService.getCartItems(userId);
+    console.log("cart list",cartItemsList)
 
     if (cartItemsList.length === 0) {
       throw new Error("Cart is empty");
@@ -140,6 +181,8 @@ export class CheckoutService {
         price: item.price,
       }))
     );
+
+    console.log("order created")
 
     // Create order status history
     await db.insert(orderStatusHistory).values({

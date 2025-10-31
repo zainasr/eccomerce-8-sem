@@ -1,5 +1,7 @@
 'use client';
 
+
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -14,6 +16,7 @@ import { toast } from "sonner"
 import { useAuthStore } from '@/store/auth.store';
 import { API_URL, ROUTES } from '@/lib/constants';
 import { AuthResponse } from '@/types';
+import { Eye, EyeOff } from 'lucide-react';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Email or username is required'),
@@ -26,6 +29,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { setUser } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -91,14 +95,25 @@ export default function LoginPage() {
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   {...register('password')}
+                  autoComplete="current-password"
+                  className="pr-12"
                 />
+                <button
+                  type="button"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-2 top-9 p-1 text-slate-500 hover:text-primary focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
                 {errors.password && (
                   <p className="text-sm text-red-600">{errors.password.message}</p>
                 )}
@@ -110,9 +125,15 @@ export default function LoginPage() {
             </form>
 
             <div className="mt-4 text-center text-sm space-y-2">
-            <p className="text-muted-foreground">
+              <p className="text-muted-foreground">
                 <Link href="/forgot-password" className="text-primary hover:underline">
                   Forgot password?
+                </Link>
+              </p>
+              <p className="text-muted-foreground">
+                Didn&apos;t receive the verification email?{' '}
+                <Link href="/resend-verification" className="text-primary hover:underline">
+                  Resend verification
                 </Link>
               </p>
               <p className="text-muted-foreground">

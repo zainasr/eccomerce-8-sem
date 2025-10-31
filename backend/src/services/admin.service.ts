@@ -1,4 +1,4 @@
-import { eq, desc, count, sql, gte, lte, and } from "drizzle-orm";
+import { eq, desc, count, sql, gte, lte, and, or } from "drizzle-orm";
 import { db } from "../database/connection";
 import { users, userProfiles } from "../database/schemas/auth";
 import { orderItems, orders} from "../database/schemas/order";
@@ -148,10 +148,18 @@ export class AdminService {
 
     const dateFilter = whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
-    const [totalUsersResult] = await db
-      .select({ count: count() })
-      .from(users);
+    // Debug: orders by status
+    try {
+      const statusRows = await db
+        .select({ status: orders.status, count: count() })
+        .from(orders)
+        .groupBy(orders.status);
+      console.log("[analytics] orders by status:", statusRows);
+    } catch (e) {
+      console.log("[analytics] failed to get orders by status", e);
+    }
 
+    const [totalUsersResult] = await db.select({ count: count() }).from(users);
     const [buyersResult] = await db
       .select({ count: count() })
       .from(users)
@@ -162,12 +170,13 @@ export class AdminService {
       .from(orders)
       .where(dateFilter);
 
+    // Include both delivered and confirmed in revenue numbers (common for dashboards)
+    const statusFilter = or(eq(orders.status, "delivered"), eq(orders.status, "confirmed"));
+
     const [totalRevenueResult] = await db
-      .select({ 
-        total: sql<number>`COALESCE(SUM(CAST(${orders.totalAmount} AS NUMERIC)), 0)` 
-      })
+      .select({ total: sql<number>`COALESCE(SUM(CAST(${orders.totalAmount} AS NUMERIC)), 0)` })
       .from(orders)
-      .where(and(dateFilter, eq(orders.status, "delivered")));
+      .where(and(dateFilter, statusFilter));
 
     const revenueByMonth = await db
       .select({
@@ -175,38 +184,45 @@ export class AdminService {
         revenue: sql<number>`COALESCE(SUM(CAST(${orders.totalAmount} AS NUMERIC)), 0)`,
       })
       .from(orders)
-      .where(and(dateFilter, eq(orders.status, "delivered")))
+      .where(and(dateFilter, statusFilter))
       .groupBy(sql`TO_CHAR(${orders.createdAt}, 'YYYY-MM')`)
       .orderBy(sql`TO_CHAR(${orders.createdAt}, 'YYYY-MM')`);
 
+    // Top products by quantity sold from order_items (filter by orders status)
     const topProducts = await db
       .select({
         productId: products.id,
         productName: products.name,
-        totalSold: sql<number>`COALESCE(SUM(${sql`CAST(${orders.totalAmount} AS NUMERIC)`}), 0)`,
+        totalSold: sql<number>`COALESCE(SUM(${orderItems.quantity}), 0)`,
       })
-      .from(orders)
-      .innerJoin(sql`order_items`, sql`orders.id = order_items.order_id`)
-      .innerJoin(products, sql`order_items.product_id = ${products.id}`)
-      .where(and(dateFilter, eq(orders.status, "delivered")))
+      .from(orderItems)
+      .innerJoin(orders, eq(orderItems.orderId, orders.id))
+      .innerJoin(products, eq(orderItems.productId, products.id))
+      .where(and(dateFilter, statusFilter))
       .groupBy(products.id, products.name)
-      .orderBy(desc(sql`COALESCE(SUM(${sql`CAST(${orders.totalAmount} AS NUMERIC)`}), 0)`))
+      .orderBy(desc(sql`COALESCE(SUM(${orderItems.quantity}), 0)`))
       .limit(10);
+
+    // Debug aggregates
+    console.log("[analytics] totals:", {
+      totalUsers: Number(totalUsersResult.count),
+      totalBuyers: Number(buyersResult.count),
+      totalOrders: Number(totalOrdersResult.count),
+      totalRevenue: Number(totalRevenueResult.total),
+      revenueByMonthCount: revenueByMonth.length,
+      topProductsCount: topProducts.length,
+    });
+
+    const [totalProductsResult] = await db.select({ count: count() }).from(products);
 
     return {
       totalUsers: Number(totalUsersResult.count),
       totalBuyers: Number(buyersResult.count),
       totalOrders: Number(totalOrdersResult.count),
       totalRevenue: Number(totalRevenueResult.total),
-      revenueByMonth: revenueByMonth.map((row) => ({
-        month: row.month,
-        revenue: Number(row.revenue),
-      })),
-      topProducts: topProducts.map((row) => ({
-        productId: row.productId,
-        productName: row.productName,
-        totalSold: Number(row.totalSold),
-      })),
+      totalProducts: Number(totalProductsResult.count),
+      revenueByMonth: revenueByMonth.map((row) => ({ month: row.month, revenue: Number(row.revenue) })),
+      topProducts: topProducts.map((row) => ({ productId: row.productId, productName: row.productName, totalSold: Number(row.totalSold) })),
     };
   }
 

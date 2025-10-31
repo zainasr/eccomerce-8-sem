@@ -1,5 +1,7 @@
 'use client';
 
+
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -107,11 +109,11 @@ export default function CartPage() {
       }
   
       const result = await response.json();
-      const { sessionUrl } = result.data || {};
+      const { url } = result.data || {};
   
       // Redirect to Stripe Checkout
-      if (sessionUrl) {
-        window.location.href = sessionUrl;
+      if (url) {
+        window.location.href = url;
       } else {
         toast.error('Checkout Failed', { description: 'Invalid checkout session' });
       }

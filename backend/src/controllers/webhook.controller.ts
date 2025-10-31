@@ -38,7 +38,9 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
     switch (event.type) {
       case "payment_intent.succeeded":
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        console.log("payment intent" , paymentIntent)
         await paymentService.handlePaymentSuccess(paymentIntent.id);
+        
         
         // Create orders after successful payment
         const shippingAddress = paymentIntent.shipping?.address 

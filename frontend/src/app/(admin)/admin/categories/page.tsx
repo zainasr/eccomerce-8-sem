@@ -1,155 +1,73 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Plus, Edit2, Trash2, Tags } from 'lucide-react';
-import { API_URL } from '@/lib/constants';
-import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import type { Category } from '@/types';
+"use client";
+import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
+import { API_URL } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Plus, Edit2, Trash2, Tags } from "lucide-react";
+import type { Category } from "@/types";
+import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [filters, setFilters] = useState({ search: "" });
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("limit", "10");
+    if (filters.search) params.set("search", filters.search);
+    return params.toString();
+  }, [page, filters]);
+
   useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(`${API_URL}/categories/get-all-categories?limit=100`, {
-        credentials: 'include',
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data.data?.categories || []);
+    (async function fetchCategories() {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/categories/get-all-categories?${queryString}`, {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data.data?.categories || []);
+          setTotalPages(data.data?.pagination?.totalPages || 1);
+        } else {
+          setCategories([]);
+        }
+      } catch {
+        setCategories([]);
       }
-  } catch (_error) {
-      console.error('Failed to fetch categories:', _error);
-      toast.error('Failed to load categories');
-    } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const url = editingCategory
-        ? `${API_URL}/categories/${editingCategory.id}`
-        : `${API_URL}/categories/create-category`;
-      
-      const method = editingCategory ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        toast.success(editingCategory ? 'Category updated' : 'Category created');
-        setIsDialogOpen(false);
-        setEditingCategory(null);
-        setFormData({ name: '', description: '' });
-        fetchCategories();
-      } else {
-        const error = await response.json();
-        toast.error(error.message || 'Failed to save category');
-      }
-    } catch (error) {
-      toast.error('Error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    })();
+  }, [queryString]);
 
   const handleDelete = async (id: string) => {
     try {
       const response = await fetch(`${API_URL}/categories/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
+        method: "DELETE",
+        credentials: "include",
       });
-
       if (response.ok) {
-        toast.success('Category deleted');
-        fetchCategories();
+        toast.success("Category deleted");
+        setCategories((prev) => prev.filter((c) => c.id !== id));
       } else {
         const error = await response.json();
-        toast.error(error.message || 'Failed to delete category');
+        toast.error(error.message || "Failed to delete category");
       }
-  } catch (_error) {
-      toast.error('Error occurred');
+    } catch {
+      toast.error("Error occurred");
     } finally {
       setConfirmDeleteId(null);
     }
   };
-
-  const handleEdit = (category: Category) => {
-    setEditingCategory(category);
-    setFormData({
-      name: category.name,
-      description: category.description || '',
-    });
-    setIsDialogOpen(true);
-  };
-
-  const handleNew = () => {
-    setEditingCategory(null);
-    setFormData({ name: '', description: '' });
-    setIsDialogOpen(true);
-  };
-
-  if (isLoading && categories.length === 0) {
-    return (
-      <div className="space-y-6">
-        <header>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Category Management</h1>
-          <p className="text-text-secondary mt-2 text-sm sm:text-base">Manage product categories</p>
-        </header>
-        <div className="flex items-center justify-center py-12">
-          <div className="spinner"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4 md:space-y-6 px-4 sm:px-6 lg:px-0">
@@ -158,111 +76,49 @@ export default function AdminCategoriesPage() {
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Category Management</h1>
           <p className="text-text-secondary mt-2 text-sm sm:text-base">Manage product categories</p>
         </header>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={handleNew} className="bg-primary hover:bg-primary-hover w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Category
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingCategory ? 'Edit Category' : 'Create Category'}</DialogTitle>
-              <DialogDescription>
-                {editingCategory ? 'Update category details' : 'Add a new product category'}
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Category Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Electronics"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description (Optional)</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Category description..."
-                  rows={3}
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setIsDialogOpen(false);
-                    setEditingCategory(null);
-                    setFormData({ name: '', description: '' });
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary-hover">
-                  {editingCategory ? 'Update' : 'Create'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Link href="/admin/categories/new">
+          <Button className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Category
+          </Button>
+        </Link>
       </div>
-
-      {categories.length > 0 ? (
+      {/* Filters */}
+      <div className="bg-white rounded-lg border border-border p-4 sm:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="search">Search</Label>
+            <Input id="search" placeholder="Search by name or slug" value={filters.search} onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }} />
+          </div>
+        </div>
+      </div>
+      {/* Table Desktop */}
+      {isLoading ? (
+        <div className="bg-white rounded-lg border border-border p-8 text-center">Loading...</div>
+      ) : categories.length > 0 ? (
         <div className="bg-white rounded-lg border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">#</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead className="hidden md:table-cell">Slug</TableHead>
-                  <TableHead className="hidden lg:table-cell">Description</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {categories.map((category, index) => (
-                  <TableRow key={category.id}>
-                    <TableCell className="font-medium">{index + 1}</TableCell>
-                    <TableCell>
-                      <div className="font-medium">{category.name}</div>
-                      <div className="md:hidden">
-                        <Badge variant="outline" className="text-xs mt-1">
-                          {category.slug}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <Badge variant="outline" className="text-xs">
-                        {category.slug}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell text-text-secondary text-sm">
-                      {category.description || '-'}
-                    </TableCell>
+                {categories.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell className="font-medium">{c.name}</TableCell>
+                    <TableCell>{c.slug}</TableCell>
+                    <TableCell>{c.description || "-"}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1 sm:gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(category)}
-                          className="h-8 w-8"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                      onClick={() => setConfirmDeleteId(category.id)}
-                          className="h-8 w-8 text-error hover:text-error"
-                        >
+                        <Link href={`/admin/categories/${c.id}/edit`} className="inline-flex items-center gap-2 text-primary hover:underline">
+                          <Edit2 className="h-4 w-4" /> Edit
+                        </Link>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-error hover:text-error" onClick={() => setConfirmDeleteId(c.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -272,26 +128,57 @@ export default function AdminCategoriesPage() {
               </TableBody>
             </Table>
           </div>
+          {/* Pagination */}
+          <div className="flex items-center justify-between p-3 border-t border-border text-sm">
+            <span>Page {page} of {totalPages}</span>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Previous</Button>
+              <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</Button>
+            </div>
+          </div>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-border p-8 sm:p-12 text-center">
+        <div className="bg-white rounded-lg border border-border p-12 text-center">
           <Tags className="h-12 w-12 sm:h-16 sm:w-16 text-slate-300 mx-auto mb-4" />
-          <p className="text-text-secondary text-sm sm:text-base">No categories yet. Create your first category!</p>
+          <p className="text-text-secondary text-sm sm:text-base">No categories found</p>
         </div>
       )}
-
-      {/* Centered Delete Confirmation */}
+      {/* Mobile cards */}
+      <div className="grid gap-3 md:hidden">
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, i) => <div key={i} className="rounded-lg border border-border bg-white p-4">Loading...</div>)
+        ) : categories.length > 0 ? (
+          categories.map((c) => (
+            <div key={c.id} className="rounded-lg border border-border bg-white p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">{c.name}</p>
+                  <Badge variant="outline" className="text-xs mt-1">{c.slug}</Badge>
+                </div>
+                <div className="flex gap-1">
+                  <Link href={`/admin/categories/${c.id}/edit`} className="inline-flex items-center gap-1 text-primary hover:underline">
+                    <Edit2 className="h-4 w-4" />
+                  </Link>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-error hover:text-error" onClick={() => setConfirmDeleteId(c.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              {c.description && (<p className="text-sm text-text-secondary mt-2">{c.description}</p>)}
+            </div>
+          ))
+        ) : (null)}
+      </div>
+      {/* Delete confirmation */}
       <AlertDialog open={Boolean(confirmDeleteId)} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete category?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this category? This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogDescription>Are you sure you want to delete this category? This action cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirmDeleteId && handleDelete(confirmDeleteId)} className="bg-error hover:opacity-90">
+            <AlertDialogAction className="bg-error hover:opacity-90" onClick={() => confirmDeleteId && handleDelete(confirmDeleteId)}>
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

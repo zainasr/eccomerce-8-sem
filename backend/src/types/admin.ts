@@ -60,6 +60,7 @@ export interface PlatformAnalytics {
   totalBuyers: number;
   totalOrders: number;
   totalRevenue: number;
+  totalProducts: number;
   revenueByMonth: Array<{
     month: string;
     revenue: number;

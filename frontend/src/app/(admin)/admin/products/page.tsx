@@ -117,7 +117,7 @@ export default function AdminProductsPage() {
           <p className="text-text-secondary mt-2 text-sm sm:text-base">Manage all products in your store</p>
         </header>
         <Link href="/admin/products/new">
-          <Button className="bg-primary hover:bg-primary-hover w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>

@@ -50,8 +50,8 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
                     className={cn(
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                       isActive
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted'
+                        ? 'bg-black text-white'
+                        : ''
                     )}
                   >
                     <Icon className="h-4 w-4" />

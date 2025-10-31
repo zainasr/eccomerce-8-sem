@@ -7,6 +7,8 @@ import { Order } from '@/types';
 import { formatPrice, formatDate } from '@/lib/utils';
 import { cookies } from 'next/headers';
 
+export const dynamic = 'force-dynamic';
+
 async function getRecentOrders(): Promise<Order[]> {
   try {
     const cookieStore = await cookies();
