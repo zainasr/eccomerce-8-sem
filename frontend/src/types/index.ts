@@ -159,6 +159,21 @@ export interface Payment {
   updatedAt: string;
 }
 
+// Blog Types
+export interface Blog {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  content: string;
+  coverImage?: string | null;
+  status: "draft" | "published";
+  authorId?: string;
+  publishedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
   success: boolean;

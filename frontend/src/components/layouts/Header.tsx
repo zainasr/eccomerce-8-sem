@@ -51,6 +51,7 @@ export function Header() {
           <nav className="hidden md:flex items-center gap-8">
             <Link href={ROUTES.HOME} className="text-sm font-medium text-text-secondary hover:text-primary transition-colors">Home</Link>
             <Link href={ROUTES.PRODUCTS} className="text-sm font-medium text-text-secondary hover:text-primary transition-colors">Products</Link>
+            <Link href={ROUTES.BLOGS} className="text-sm font-medium text-text-secondary hover:text-primary transition-colors">Blogs</Link>
             {user?.role === 'admin' && (
               <Link href={ROUTES.ADMIN_DASHBOARD} className="text-sm font-medium text-text-secondary hover:text-primary transition-colors">Admin</Link>
             )}

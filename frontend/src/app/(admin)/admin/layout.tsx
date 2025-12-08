@@ -10,7 +10,8 @@ import {
   BarChart3,
   Tags,
   LogOut,
-  Loader2Icon
+  Loader2Icon,
+  FileText
 } from 'lucide-react';
 import { Header } from '@/components/layouts/Header';
 import { Footer } from '@/components/layouts/Footer';
@@ -27,6 +28,7 @@ const sidebarLinks = [
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: ROUTES.ADMIN_BLOGS, label: 'Blogs', icon: FileText },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

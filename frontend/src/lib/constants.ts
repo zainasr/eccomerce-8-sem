@@ -28,6 +28,8 @@ export const ROUTES = {
   ADMIN_USERS: '/admin/users',
   ADMIN_ORDERS: '/admin/orders',
   ADMIN_ANALYTICS: '/admin/analytics',
+  ADMIN_BLOGS: '/admin/blogs',
+  BLOGS: '/blogs',
 };
 
 export const ORDER_STATUS_COLORS = {
