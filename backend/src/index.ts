@@ -12,6 +12,8 @@ import cartRoutes from "./routes/cart.routes";
 import checkoutRoutes from "./routes/checkout.routes";
 import paymentRoutes from "./routes/payment.route";
 import adminRoutes from "./routes/admin.routes";
+import blogRoutes from "./routes/blog.routes";
+import adminBlogRoutes from "./routes/blog.admin.routes";
 import { handleStripeWebhook } from "./controllers/webhook.controller";
 import { db } from "./database/connection";
 
@@ -44,6 +46,8 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/checkout", checkoutRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin/blogs", adminBlogRoutes);
+app.use("/api/blogs", blogRoutes);
 app.get("/health", (req, res) => {
     res.json({ status: "OK", service: "eccomerce app" });
 });
