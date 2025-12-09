@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { UploadDropzone } from "@/utils/uploadthing";
 import type { Category } from "@/types";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface FormState {
   name: string;
@@ -119,8 +120,9 @@ export default function AdminNewProductPage() {
       if (!data.description) throw new Error("No description returned");
       setForm((prev) => ({ ...prev, description: data.description }));
       toast.success("Description generated");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to generate description");
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(error.message || "Failed to generate description");
     } finally {
       setIsGeneratingDescription(false);
     }
@@ -149,8 +151,9 @@ export default function AdminNewProductPage() {
         seoKeywords: data.seoKeywords || prev.seoKeywords,
       }));
       toast.success("SEO generated");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to generate SEO");
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(error.message || "Failed to generate SEO");
     } finally {
       setIsGeneratingSeo(false);
     }
@@ -324,7 +327,7 @@ export default function AdminNewProductPage() {
                 <div className="flex flex-wrap gap-2 pt-2">
                   {form.images.map((u) => (
                     <div key={u} className="relative group">
-                      <img src={u} alt="product" className="h-20 w-20 object-cover rounded-md border border-border" />
+                      <Image src={u} alt="product" width={80} height={80} className="h-20 w-20 object-cover rounded-md border border-border" />
                       <button type="button" onClick={() => removeImage(u)} className="absolute -top-2 -right-2 bg-error text-white rounded-full h-6 w-6 text-xs">×</button>
                     </div>
                   ))}
