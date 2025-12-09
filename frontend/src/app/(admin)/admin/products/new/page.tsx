@@ -32,6 +32,8 @@ export default function AdminNewProductPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [isGeneratingSeo, setIsGeneratingSeo] = useState(false);
   const [form, setForm] = useState<FormState>({
     name: "",
     description: "",
@@ -65,15 +67,6 @@ export default function AdminNewProductPage() {
     })();
   }, []);
 
-  const toggleCategory = (id: string) => {
-    setForm((prev) => ({
-      ...prev,
-      categoryIds: prev.categoryIds.includes(id)
-        ? prev.categoryIds.filter((x) => x !== id)
-        : [...prev.categoryIds, id],
-    }));
-  };
-
   const removeImage = async (url: string) => {
     // optimistically remove from UI
     setForm((prev) => ({ ...prev, images: prev.images.filter((u) => u !== url) }));
@@ -88,8 +81,79 @@ export default function AdminNewProductPage() {
     }
   };
 
+  const addCategory = (id: string) => {
+    if (!id) return;
+    setForm((prev) =>
+      prev.categoryIds.includes(id)
+        ? prev
+        : { ...prev, categoryIds: [...prev.categoryIds, id] }
+    );
+  };
+
   const removeCategory = (id: string) => {
     setForm((prev) => ({ ...prev, categoryIds: prev.categoryIds.filter((x) => x !== id) }));
+  };
+
+  const generateDescription = async () => {
+    if (!form.description || form.description.trim().length === 0) {
+      toast.error("Type a few characters first to enable AI assist");
+      return;
+    }
+    const extra = window.prompt("What is the product about? Add details to guide the AI.");
+    if (extra === null) return;
+    setIsGeneratingDescription(true);
+    try {
+      const res = await fetch("/api/ai/describe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: extra,
+          productName: form.name,
+          categories: form.categoryIds
+            .map((id) => categories.find((c) => c.id === id)?.name)
+            .filter(Boolean),
+        }),
+      });
+      if (!res.ok) throw new Error("AI request failed");
+      const data = await res.json();
+      if (!data.description) throw new Error("No description returned");
+      setForm((prev) => ({ ...prev, description: data.description }));
+      toast.success("Description generated");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate description");
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
+
+  const generateSeo = async () => {
+    setIsGeneratingSeo(true);
+    try {
+      const res = await fetch("/api/ai/seo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productName: form.name,
+          description: form.description,
+          categories: form.categoryIds
+            .map((id) => categories.find((c) => c.id === id)?.name)
+            .filter(Boolean),
+        }),
+      });
+      if (!res.ok) throw new Error("AI request failed");
+      const data = await res.json();
+      setForm((prev) => ({
+        ...prev,
+        seoTitle: data.title || prev.seoTitle,
+        seoDescription: data.seoDescription || prev.seoDescription,
+        seoKeywords: data.seoKeywords || prev.seoKeywords,
+      }));
+      toast.success("SEO generated");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate SEO");
+    } finally {
+      setIsGeneratingSeo(false);
+    }
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -162,6 +226,13 @@ export default function AdminNewProductPage() {
             <div className="space-y-2">
               <Label htmlFor="description">Description *</Label>
               <Textarea id="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={5} required />
+              {form.description.trim().length > 0 && (
+                <div className="flex justify-end">
+                  <Button type="button" variant="outline" size="sm" onClick={generateDescription} disabled={isGeneratingDescription}>
+                    {isGeneratingDescription ? "Generating..." : "Write with AI"}
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -192,28 +263,47 @@ export default function AdminNewProductPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Categories *</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {categories.map((c) => (
-                  <label key={c.id} className="flex items-center gap-2 rounded-lg border border-border p-2">
-                    <Checkbox checked={form.categoryIds.includes(c.id)} onCheckedChange={() => toggleCategory(c.id)} />
-                    <span className="text-sm">{c.name}</span>
-                  </label>
-                ))}
+              <div className="flex flex-col gap-2">
+                <select
+                  className="input"
+                  onChange={(e) => addCategory(e.target.value)}
+                  value=""
+                >
+                  <option value="" disabled>Select category...</option>
+                  {categories
+                    .slice()
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                </select>
+                {form.categoryIds.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {form.categoryIds.map((id) => {
+                      const cat = categories.find((c) => c.id === id);
+                      if (!cat) return null;
+                      return (
+                        <span
+                          key={id}
+                          className="inline-flex items-center gap-2 rounded-full bg-primary-light text-primary px-3 py-1 text-xs"
+                        >
+                          {cat.name}
+                          <button
+                            type="button"
+                            aria-label={`Remove ${cat.name}`}
+                            onClick={() => removeCategory(id)}
+                            className="text-primary-hover"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            {form.categoryIds.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-2">
-                {form.categoryIds.map((id) => {
-                  const cat = categories.find((c) => c.id === id);
-                  if (!cat) return null;
-                  return (
-                    <span key={id} className="inline-flex items-center gap-2 rounded-full bg-primary-light text-primary px-3 py-1 text-xs">
-                      {cat.name}
-                      <button type="button" aria-label={`Remove ${cat.name}`} onClick={() => removeCategory(id)} className="text-primary-hover">×</button>
-                    </span>
-                  );
-                })}
-              </div>
-            )}
             </div>
 
             <div className="space-y-2">
@@ -252,7 +342,12 @@ export default function AdminNewProductPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>SEO</Label>
+              <div className="flex items-center justify-between">
+                <Label>SEO</Label>
+                <Button type="button" variant="outline" size="sm" onClick={generateSeo} disabled={isGeneratingSeo}>
+                  {isGeneratingSeo ? "Generating..." : "Write with AI"}
+                </Button>
+              </div>
               <Input placeholder="SEO Title" value={form.seoTitle} onChange={(e) => setForm({ ...form, seoTitle: e.target.value })} />
               <Input placeholder="SEO Keywords (comma-separated)" value={form.seoKeywords} onChange={(e) => setForm({ ...form, seoKeywords: e.target.value })} />
               <Textarea placeholder="SEO Description" value={form.seoDescription} onChange={(e) => setForm({ ...form, seoDescription: e.target.value })} rows={3} />
