@@ -120,9 +120,9 @@ export default function ProductsClient({
   };
 
   return (
-    <div className="py-6 md:py-8">
+    <div className="py-8 md:py-12">
       {/* Top toolbar */}
-      <div className="flex items-center justify-between gap-3 mb-4">
+      <div className="flex items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-2 flex-1">
           <div className="relative flex-1 max-w-xl">
             <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
@@ -162,10 +162,10 @@ export default function ProductsClient({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Sidebar */}
         <aside className={`md:col-span-3 ${sidebarOpen ? 'block' : 'hidden'} md:block`}>
-          <div className="rounded-lg border border-border bg-white p-4 md:p-5 space-y-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold">Filters</h2>
-              <button className="text-sm text-text-secondary underline" onClick={clearAllFilters}>Clear all</button>
+          <div className="rounded-xl border border-border/50 bg-white p-5 md:p-6 space-y-6 shadow-sm">
+            <div className="flex items-center justify-between pb-4 border-b border-border/50">
+              <h2 className="font-semibold text-lg">Filters</h2>
+              <button className="text-sm text-primary hover:underline font-medium transition-colors" onClick={clearAllFilters}>Clear all</button>
             </div>
 
             <div className="space-y-2">
@@ -223,14 +223,14 @@ export default function ProductsClient({
               <div className="product-grid">
                 {products.map((product) => (
                   <Link key={product.id} href={ROUTES.PRODUCT_DETAIL(product.slug)} className="group">
-                    <article className="card h-full hover:-translate-y-1 transition-all duration-200">
+                    <article className="card h-full hover:-translate-y-2 hover:shadow-xl transition-all duration-300 border-border/50">
                       <div className="aspect-square relative bg-surface rounded-t-xl overflow-hidden">
                         {product.images && product.images[0] ? (
                           <Image
                             src={product.images[0].imageUrl}
                             alt={product.name}
                             fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                         ) : (
                           <div className="flex items-center justify-center h-full bg-slate-100">
@@ -238,14 +238,14 @@ export default function ProductsClient({
                           </div>
                         )}
                       </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">{product.name}</h3>
-                        <p className="text-2xl font-bold text-primary">{formatPrice(product.price)}</p>
+                      <div className="p-5">
+                        <h3 className="font-semibold mb-3 line-clamp-2 group-hover:text-primary transition-colors leading-snug">{product.name}</h3>
+                        <p className="text-2xl font-bold text-primary mb-2">{formatPrice(product.price)}</p>
                         {product.stockQuantity < 10 && product.stockQuantity > 0 && (
-                          <p className="text-sm text-warning mt-1">Only {product.stockQuantity} left</p>
+                          <p className="text-sm text-warning mt-1 font-medium">Only {product.stockQuantity} left</p>
                         )}
                         {product.stockQuantity === 0 && (
-                          <p className="text-sm text-error mt-1">Out of stock</p>
+                          <p className="text-sm text-error mt-1 font-medium">Out of stock</p>
                         )}
                       </div>
                     </article>
@@ -254,11 +254,11 @@ export default function ProductsClient({
               </div>
 
               {/* Pagination */}
-              <div className="flex items-center justify-between mt-6 border-t border-border pt-4">
-                <span className="text-sm text-text-secondary">Page {page} of {totalPages}</span>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Previous</Button>
-                  <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</Button>
+              <div className="flex items-center justify-between mt-8 border-t border-border/50 pt-6">
+                <span className="text-sm text-text-secondary font-medium">Page {page} of {totalPages}</span>
+                <div className="flex items-center gap-3">
+                  <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="shadow-sm hover:shadow-md transition-shadow">Previous</Button>
+                  <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} className="shadow-sm hover:shadow-md transition-shadow">Next</Button>
                 </div>
               </div>
             </>

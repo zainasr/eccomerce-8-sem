@@ -73,58 +73,59 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-16">
+    <div className="container mx-auto px-4 py-20">
       <div className="max-w-md mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+        <Card className="shadow-xl border-border/50">
+          <CardHeader className="space-y-2 pb-6">
+            <CardTitle className="text-2xl">Login</CardTitle>
+            <CardDescription className="text-base">Enter your credentials to access your account</CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <CardContent className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
                   {...register('identifier')}
+                  className="h-11"
                 />
                 {errors.identifier && (
-                  <p className="text-sm text-red-600">{errors.identifier.message}</p>
+                  <p className="text-sm text-red-600 mt-1">{errors.identifier.message}</p>
                 )}
               </div>
 
               <div className="space-y-2 relative">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   {...register('password')}
                   autoComplete="current-password"
-                  className="pr-12"
+                  className="pr-12 h-11"
                 />
                 <button
                   type="button"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-2 top-9 p-1 text-slate-500 hover:text-primary focus:outline-none"
+                  className="absolute right-3 top-10 p-1 text-slate-500 hover:text-primary focus:outline-none transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
                 {errors.password && (
-                  <p className="text-sm text-red-600">{errors.password.message}</p>
+                  <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full h-11 shadow-md hover:shadow-lg transition-shadow" disabled={isLoading}>
                 {isLoading ? 'Logging in...' : 'Login'}
               </Button>
             </form>
 
-            <div className="mt-4 text-center text-sm space-y-2">
+            <div className="mt-6 pt-6 border-t border-border/50 text-center text-sm space-y-3">
               <p className="text-muted-foreground">
                 <Link href="/forgot-password" className="text-primary hover:underline">
                   Forgot password?

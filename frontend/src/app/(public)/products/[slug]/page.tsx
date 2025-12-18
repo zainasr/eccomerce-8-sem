@@ -101,17 +101,17 @@ export default async function ProductDetailPage({
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="container py-8 md:py-12">
+      <div className="container py-10 md:py-16">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
         {/* Breadcrumb */}
-        <nav className="mb-6 text-sm text-text-secondary" aria-label="Breadcrumb">
+        <nav className="mb-8 text-sm text-text-secondary" aria-label="Breadcrumb">
           <ol className="flex items-center gap-2">
-            <li>Home</li>
+            <li className="hover:text-primary transition-colors">Home</li>
             <li>/</li>
             {product.categories?.length > 0 && (
               <>
-                <li>{product.categories[0].name}</li>
+                <li className="hover:text-primary transition-colors">{product.categories[0].name}</li>
                 <li>/</li>
               </>
             )}
@@ -119,10 +119,10 @@ export default async function ProductDetailPage({
           </ol>
         </nav>
 
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
           {/* Product Images */}
-          <section className="space-y-4">
-            <div className="aspect-square relative bg-surface rounded-2xl overflow-hidden border border-border">
+          <section className="space-y-5">
+            <div className="aspect-square relative bg-surface rounded-2xl overflow-hidden border border-border/50 shadow-lg">
               {primaryImage ? (
                 <Image
                   src={primaryImage.imageUrl}
@@ -138,8 +138,8 @@ export default async function ProductDetailPage({
                 </div>
               )}
               {!inStock && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <span className="bg-error text-white px-6 py-3 rounded-lg font-semibold text-lg">
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                  <span className="bg-error text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg">
                     Out of Stock
                   </span>
                 </div>
@@ -147,11 +147,11 @@ export default async function ProductDetailPage({
             </div>
 
             {product.images && product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-4 gap-4">
                 {product.images.map((image) => (
                   <div
                     key={image.id}
-                    className="aspect-square relative bg-surface rounded-lg overflow-hidden border border-border hover:border-primary transition-colors cursor-pointer"
+                    className="aspect-square relative bg-surface rounded-xl overflow-hidden border-2 border-border/50 hover:border-primary transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
                   >
                     <Image
                       src={image.imageUrl}
@@ -167,13 +167,13 @@ export default async function ProductDetailPage({
           </section>
 
           {/* Product Info */}
-          <section className="space-y-6">
+          <section className="space-y-8">
             <header>
-              <h1 className="text-3xl md:text-4xl font-bold text-text mb-3">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-text mb-4 leading-tight">
                 {product.name}
               </h1>
               {product.categories && product.categories.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-6">
                   {product.categories.map((category) => (
                     <Badge key={category.id} className="badge-primary">
                       {category.name}
@@ -183,41 +183,47 @@ export default async function ProductDetailPage({
               )}
             </header>
 
-            <div className="border-t border-b border-border py-6">
-              <div className="flex items-baseline gap-3">
-                <p className="text-5xl font-bold text-primary">
+            <div className="border-t border-b border-border/50 py-8">
+              <div className="flex items-baseline gap-3 mb-3">
+                <p className="text-5xl md:text-6xl font-bold text-primary">
                   {formatPrice(product.price)}
                 </p>
               </div>
-              <p className="text-sm text-text-secondary mt-2">
+              <p className="text-base text-text-secondary font-medium">
                 {inStock
                   ? product.stockQuantity < 10
-                    ? `Only {product.stockQuantity} left in stock - order soon!`
+                    ? `Only ${product.stockQuantity} left in stock - order soon!`
                     : 'In Stock'
                   : 'Currently unavailable'}
               </p>
             </div>
 
             {product.description && (
-              <div>
-                <h2 className="text-xl font-semibold mb-3">Product Description</h2>
-                <p className="text-text-secondary leading-relaxed">{product.description}</p>
+              <div className="pt-4">
+                <h2 className="text-xl md:text-2xl font-semibold mb-4">Product Description</h2>
+                <p className="text-text-secondary leading-relaxed text-base">{product.description}</p>
               </div>
             )}
 
             {/* Trust Badges */}
-            <div className="grid grid-cols-3 gap-4 py-6 border-t border-border">
-              <div className="text-center">
-                <Truck className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-xs font-medium">Fast Shipping</p>
+            <div className="grid grid-cols-3 gap-4 py-8 border-t border-border/50">
+              <div className="text-center p-4 rounded-lg hover:bg-surface/50 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Truck className="h-6 w-6 text-primary" />
+                </div>
+                <p className="text-xs font-semibold">Fast Shipping</p>
               </div>
-              <div className="text-center">
-                <Shield className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-xs font-medium">Secure Payment</p>
+              <div className="text-center p-4 rounded-lg hover:bg-surface/50 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Shield className="h-6 w-6 text-primary" />
+                </div>
+                <p className="text-xs font-semibold">Secure Payment</p>
               </div>
-              <div className="text-center">
-                <Star className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-xs font-medium">Quality Guarantee</p>
+              <div className="text-center p-4 rounded-lg hover:bg-surface/50 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Star className="h-6 w-6 text-primary" />
+                </div>
+                <p className="text-xs font-semibold">Quality Guarantee</p>
               </div>
             </div>
 

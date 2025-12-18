@@ -14,6 +14,7 @@ export function Footer() {
         </Link>
         <nav className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
           <Link href={ROUTES.PRODUCTS} className="hover:text-primary transition-colors">Products</Link>
+          <Link href={ROUTES.BLOGS} className="hover:text-primary transition-colors">Blogs</Link>
           <Link href={ROUTES.ABOUT} className="hover:text-primary transition-colors">About</Link>
           <Link href={ROUTES.CONTACT} className="hover:text-primary transition-colors">Contact</Link>
           <Link href={ROUTES.LOGIN} className="hover:text-primary transition-colors">Login</Link>

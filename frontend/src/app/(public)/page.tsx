@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import type { Product, Category } from '@/types';
+import type { Product, Category, Blog } from '@/types';
 import { API_URL } from '@/lib/constants';
 import HomeClient from './HomeClient';
 
@@ -33,12 +33,22 @@ async function getCategories(): Promise<Category[]> {
   } catch (_e) { return []; }
 }
 
+async function getBlogs(): Promise<Blog[]> {
+  try {
+    const response = await fetch(`${API_URL}/blogs?page=1&limit=6`, { cache: 'no-store' });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.data?.blogs || [];
+  } catch (_e) { return []; }
+}
+
 export default async function HomePage() {
-  const [products, categories] = await Promise.all([
+  const [products, categories, blogs] = await Promise.all([
     getFeaturedProducts(),
     getCategories(),
+    getBlogs(),
   ]);
   console.log("products",products)
   console.log("categories",categories)
-  return <HomeClient products={products} categories={categories} />;
+  return <HomeClient products={products} categories={categories} blogs={blogs} />;
 }

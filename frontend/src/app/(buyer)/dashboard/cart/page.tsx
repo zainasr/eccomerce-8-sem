@@ -132,14 +132,14 @@ export default function CartPage() {
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Shopping Cart</h1>
-        <Card>
-          <CardContent className="text-center py-12">
-            <ShoppingCart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <p className="text-lg font-semibold mb-2">Your cart is empty</p>
-            <p className="text-muted-foreground mb-4">Add some products to get started</p>
-            <Button onClick={() => router.push(ROUTES.PRODUCTS)}>
+      <div className="space-y-8">
+        <h1 className="text-3xl md:text-4xl font-bold">Shopping Cart</h1>
+        <Card className="shadow-lg border-border/50">
+          <CardContent className="text-center py-16">
+            <ShoppingCart className="h-20 w-20 text-muted-foreground mx-auto mb-6" />
+            <p className="text-xl font-semibold mb-2">Your cart is empty</p>
+            <p className="text-muted-foreground mb-6">Add some products to get started</p>
+            <Button onClick={() => router.push(ROUTES.PRODUCTS)} size="lg" className="shadow-md hover:shadow-lg transition-shadow">
               Browse Products
             </Button>
           </CardContent>
@@ -149,34 +149,35 @@ export default function CartPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Shopping Cart</h1>
+    <div className="space-y-8">
+      <h1 className="text-3xl md:text-4xl font-bold">Shopping Cart</h1>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Cart Items */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-5">
           {cart.items.map((item) => (
-            <Card key={item.id}>
-              <CardContent className="p-4">
-                <div className="flex gap-4">
-                  <div className="w-24 h-24 relative bg-slate-100 rounded-md overflow-hidden flex-shrink-0">
+            <Card key={item.id} className="shadow-sm hover:shadow-md transition-shadow border-border/50">
+              <CardContent className="p-5">
+                <div className="flex gap-5">
+                  <div className="w-28 h-28 relative bg-slate-100 rounded-lg overflow-hidden flex-shrink-0 border border-border/50">
                     {/* Add product image here if available */}
                   </div>
 
                   <div className="flex-1">
-                    <p className="text-lg font-bold text-primary">
+                    <p className="text-lg font-bold text-primary mb-1">
                       {item.productId}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-base font-semibold text-text mb-4">
                       {formatPrice(item.price)}
                     </p>
 
-                    <div className="flex items-center gap-2 mt-4">
+                    <div className="flex items-center gap-3">
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => updateQuantity(item.productId, item.quantity - 1)}
                         disabled={item.quantity <= 1}
+                        className="shadow-sm"
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
@@ -184,13 +185,14 @@ export default function CartPage() {
                         type="number"
                         value={item.quantity}
                         onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value))}
-                        className="w-20 text-center"
+                        className="w-24 text-center font-semibold"
                         min="1"
                       />
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                        className="shadow-sm"
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -198,9 +200,9 @@ export default function CartPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => removeItem(item.productId)}
-                        className="ml-auto"
+                        className="ml-auto hover:bg-red-50 hover:text-red-600 transition-colors"
                       >
-                        <Trash2 className="h-4 w-4 text-red-600" />
+                        <Trash2 className="h-5 w-5" />
                       </Button>
                     </div>
                   </div>
@@ -212,25 +214,25 @@ export default function CartPage() {
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <Card className="sticky top-24">
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+          <Card className="sticky top-24 shadow-lg border-border/50">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl">Order Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Items ({cart.items.length})</span>
-                  <span>{formatPrice(totalAmount)}</span>
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <div className="flex justify-between text-base">
+                  <span className="text-muted-foreground font-medium">Items ({cart.items.length})</span>
+                  <span className="font-semibold">{formatPrice(totalAmount)}</span>
                 </div>
               </div>
 
-              <div className="border-t pt-4 flex justify-between font-bold text-lg">
+              <div className="border-t border-border/50 pt-4 flex justify-between font-bold text-xl">
                 <span>Total</span>
-                <span>{formatPrice(totalAmount)}</span>
+                <span className="text-primary">{formatPrice(totalAmount)}</span>
               </div>
 
               <Button
-                className="w-full"
+                className="w-full shadow-lg hover:shadow-xl transition-shadow"
                 size="lg"
                 onClick={handleCheckout}
                 disabled={isLoading}
@@ -238,7 +240,7 @@ export default function CartPage() {
                 {isLoading ? 'Redirecting to Checkout...' : 'Proceed to Checkout'}
               </Button>
               
-              <p className="text-xs text-center text-muted-foreground">
+              <p className="text-xs text-center text-muted-foreground pt-2">
                 You&apos;ll be redirected to Stripe&apos;s secure checkout
               </p>
             </CardContent>
