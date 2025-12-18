@@ -35,10 +35,21 @@ async function getCategories(): Promise<Category[]> {
 
 async function getBlogs(): Promise<Blog[]> {
   try {
-    const response = await fetch(`${API_URL}/blogs?page=1&limit=6`, { cache: 'no-store' });
+    const response = await fetch(`${API_URL}/blogs?page=1&limit=6`, { 
+      cache: 'no-store',
+      next: { revalidate: 0 }
+    });
     if (!response.ok) return [];
     const data = await response.json();
-    return data.data?.blogs || [];
+    const blogs = data.data?.blogs || [];
+    // Filter to ensure only published blogs are shown (backend should do this, but double-check)
+    const publishedBlogs = blogs.filter((blog: Blog) => blog.status === 'published');
+    // Sort by publishedAt (latest first), then createdAt as fallback
+    return publishedBlogs.sort((a: Blog, b: Blog) => {
+      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : new Date(a.createdAt).getTime();
+      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : new Date(b.createdAt).getTime();
+      return dateB - dateA; // Descending order (latest first)
+    });
   } catch (_e) { return []; }
 }
 
@@ -48,7 +59,6 @@ export default async function HomePage() {
     getCategories(),
     getBlogs(),
   ]);
-  console.log("products",products)
-  console.log("categories",categories)
+ 
   return <HomeClient products={products} categories={categories} blogs={blogs} />;
 }

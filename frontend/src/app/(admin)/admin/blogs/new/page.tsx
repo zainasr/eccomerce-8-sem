@@ -14,6 +14,7 @@ import { toast } from "sonner";
 export default function AdminNewBlogPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingBlog, setIsGeneratingBlog] = useState(false);
   const [form, setForm] = useState({
     title: "",
     slug: "",
@@ -22,6 +23,41 @@ export default function AdminNewBlogPage() {
     coverImage: "",
     status: "draft" as "draft" | "published",
   });
+
+  const generateBlog = async () => {
+    const prompt = window.prompt("What should this blog post be about? Describe the topic, key points, or any specific information you want included.");
+    if (prompt === null || !prompt.trim()) return;
+
+    setIsGeneratingBlog(true);
+    try {
+      const res = await fetch("/api/ai/blog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: prompt.trim() }),
+      });
+
+      if (!res.ok) throw new Error("AI request failed");
+      const data = await res.json();
+
+      if (!data.title || !data.content) {
+        throw new Error("Incomplete blog data returned");
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        title: data.title || prev.title,
+        excerpt: data.excerpt || prev.excerpt,
+        content: data.content || prev.content,
+      }));
+
+      toast.success("Blog generated successfully");
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(error.message || "Failed to generate blog");
+    } finally {
+      setIsGeneratingBlog(false);
+    }
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +108,18 @@ export default function AdminNewBlogPage() {
       </header>
 
       <form onSubmit={onSubmit} className="bg-white rounded-lg border border-border p-4 sm:p-6 space-y-6">
+        <div className="flex items-center justify-end mb-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={generateBlog}
+            disabled={isGeneratingBlog}
+            className="shadow-sm hover:shadow-md transition-shadow"
+          >
+            {isGeneratingBlog ? "Generating Blog..." : "Generate with AI"}
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <div className="space-y-4">
             <div className="space-y-2">
