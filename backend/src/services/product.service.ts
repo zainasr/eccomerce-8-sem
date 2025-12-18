@@ -106,6 +106,10 @@ function mapDbCategoryToCategory(row: any): Category {
   };
 }
 
+// Default placeholder image used when admin does not upload any image
+const DEFAULT_PLACEHOLDER_IMAGE =
+  "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+
 export class ProductService {
   async createProduct(
     data: CreateProductRequest,
@@ -145,13 +149,12 @@ export class ProductService {
     }
   
     // Ensure at least one image exists for the product
-    const defaultImages = [
-      "https://images.unsplash.com/photo-1512446816042-444d6412674f",
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
-    ];
-  
-    const imagesToInsert = (data as any).images as string[] | undefined;
+    const rawImages = (data as any).images as string[] | undefined;
+    const imagesToInsert = rawImages
+      ? rawImages
+          .map((u) => (u || "").trim())
+          .filter((u) => u.length > 0)
+      : undefined;
   
     if (imagesToInsert && imagesToInsert.length > 0) {
       // Insert provided images, mark the first as primary
@@ -163,9 +166,8 @@ export class ProductService {
         }))
       );
     } else {
-      // Insert a default placeholder image
-      const fallbackUrl =
-        defaultImages[Math.floor(Math.random() * defaultImages.length)];
+      // Insert a single default placeholder image when no valid image is provided
+      const fallbackUrl = DEFAULT_PLACEHOLDER_IMAGE;
       await db.insert(productImages).values({
         productId: newProduct.id,
         imageUrl: fallbackUrl,
@@ -417,18 +419,19 @@ export class ProductService {
     data: UpdateProductRequest,
     sellerId: string
   ): Promise<Product> {
-    // Verify product exists and belongs to seller
+    // B2C model: platform owns all products, any admin can edit any product.
+    // We only verify the product exists by id.
     const [existingProduct] = await db
       .select()
       .from(products)
-      .where(and(eq(products.id, id), eq(products.sellerId, sellerId)))
+      .where(eq(products.id, id))
       .limit(1);
 
     if (!existingProduct) {
       console.log(
-        `[UPDATE PRODUCT] Product not found or access denied for ID: ${id}`
+        `[UPDATE PRODUCT] Product not found for ID: ${id}`
       );
-      throw new Error("Product not found or access denied");
+      throw new Error("Product not found");
     }
 
     console.log(
@@ -559,14 +562,15 @@ export class ProductService {
   }
 
   async deleteProduct(id: string, sellerId: string): Promise<void> {
+    // B2C model: any admin can manage all products; sellerId check is not needed here
     const [existingProduct] = await db
       .select()
       .from(products)
-      .where(and(eq(products.id, id), eq(products.sellerId, sellerId)))
+      .where(eq(products.id, id))
       .limit(1);
 
     if (!existingProduct) {
-      throw new Error("Product not found or access denied");
+      throw new Error("Product not found");
     }
 
     await db.delete(products).where(eq(products.id, id));
