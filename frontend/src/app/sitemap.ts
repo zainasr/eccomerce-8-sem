@@ -8,6 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const urls: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, changeFrequency: 'daily', priority: 1.0 },
     { url: `${SITE_URL}/products`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${SITE_URL}/blogs`, changeFrequency: 'daily', priority: 0.8 },
     { url: `${SITE_URL}/about`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE_URL}/contact`, changeFrequency: 'monthly', priority: 0.7 },
   ];
@@ -60,6 +61,44 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           if (res.ok) {
             const data = await res.json();
             addProducts(data.data?.products || []);
+          }
+        }
+      }
+    }
+  } catch {}
+
+  try {
+    // Blogs (paginate to be safe)
+    const blogPage = 1;
+    const blogLimit = 100;
+    const blogRes = await fetch(`${API_URL}/blogs?page=${blogPage}&limit=${blogLimit}`, { cache: 'no-store' });
+    if (blogRes.ok) {
+      const blogData = await blogRes.json();
+      const totalBlogPages = blogData.data?.pagination?.totalPages || 1;
+      const addBlogs = (items: { slug: string; updatedAt?: string; publishedAt?: string }[]) => {
+        for (const b of items || []) {
+          if (b.slug) {
+            urls.push({
+              url: `${SITE_URL}/blogs/${b.slug}`,
+              changeFrequency: 'weekly',
+              priority: 0.7,
+              lastModified: b.updatedAt ? new Date(b.updatedAt) : (b.publishedAt ? new Date(b.publishedAt) : undefined),
+            });
+          }
+        }
+      };
+      addBlogs(blogData.data?.blogs || []);
+
+      const blogFetches: Promise<Response>[] = [];
+      for (let i = 2; i <= totalBlogPages; i++) {
+        blogFetches.push(fetch(`${API_URL}/blogs?page=${i}&limit=${blogLimit}`, { cache: 'no-store' }));
+      }
+      if (blogFetches.length) {
+        const blogResults = await Promise.all(blogFetches);
+        for (const res of blogResults) {
+          if (res.ok) {
+            const data = await res.json();
+            addBlogs(data.data?.blogs || []);
           }
         }
       }
